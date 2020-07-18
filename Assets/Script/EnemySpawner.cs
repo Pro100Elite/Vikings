@@ -14,7 +14,9 @@ public class EnemySpawner : MonoBehaviour
 
     private void Start()
     {
+        enemyes = GameObject.FindGameObjectsWithTag("Enemy");
         score = GetComponent<ScoreController>();
+        StartCoroutine(Spawn());
     }
 
     void Update()
@@ -22,26 +24,32 @@ public class EnemySpawner : MonoBehaviour
         enemyes = GameObject.FindGameObjectsWithTag("Enemy");
     }
 
-    private void LateUpdate()
+    IEnumerator Spawn()
     {
-        Spawn();
-    }
-
-    void Spawn()
-    {
-        if (enemyes.Count() != 10)
+        float timespawn = 0f;
+        float quantityEnemy = 2f;
+        while (true)
         {
-            float x, x2, y, z, z2;
+            if (enemyes.Count() <= quantityEnemy)
+            {
+                yield return new WaitForSeconds(timespawn);
+                float x, x2, y, z, z2;
+                x = player.transform.position.x + 40;
+                x2 = player.transform.position.x - 40;
+                y = player.transform.position.y;
+                z = player.transform.position.z + 40;
+                z2 = player.transform.position.z - 40;
 
-            x = Random.Range(player.transform.position.x + 30, player.transform.position.x + 40);
-            x2 = Random.Range(player.transform.position.x - 30, player.transform.position.x - 40);
-            y = player.transform.position.y;
-            z = Random.Range(player.transform.position.z + 30, player.transform.position.z + 40);
-            z2 = Random.Range(player.transform.position.z - 30, player.transform.position.z - 40);
-
-            offset = new Vector3(Random.Range(x,x2), player.transform.position.y, Random.Range(z,z2));
-            mutant.GetComponent<EnemyState>().maxHp = score.value + 1; 
-            Instantiate(mutant, offset, Quaternion.identity);
+                offset = new Vector3(Random.Range(x, x2), player.transform.position.y, Random.Range(z, z2));
+                mutant.GetComponent<EnemyState>().maxHp = score.value + 1;
+                Instantiate(mutant, offset, Quaternion.identity);
+                timespawn = Random.Range(0f, 6f);
+            }
+            else
+            {
+                yield return new WaitForSeconds(5f);
+                quantityEnemy = Random.Range(1f,6f);
+            }
         }
     }
 }

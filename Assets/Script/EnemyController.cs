@@ -90,6 +90,6 @@ public class EnemyController : MonoBehaviour
         Instantiate(hpSphere, transform.position, transform.rotation);
         score.value += 1;
         dieEffect.SetActive(true);
-        Destroy(gameObject, 2f);
+        Destroy(gameObject, 3.1f);
     }
 }

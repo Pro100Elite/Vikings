@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -10,30 +11,34 @@ public class PlayerController : MonoBehaviour
 
     float horizontal;
     float vertical;
-    float cdAttack = 0f;
 
     Rigidbody rb;
     Animator animator;
     PlayerState playerState;
+    ModileController mobileController;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         playerState = GetComponent<PlayerState>();
+        mobileController = GameObject.FindGameObjectWithTag("Joystick").GetComponent<ModileController>();
     }
 
     void FixedUpdate()
     {
-        Attack();
+        if(playerState.cdAttack <= playerState.enableAttack)
+        {
+            playerState.cdAttack += Time.deltaTime;
+        }
         Move();
         Die();
     }
 
     void Move()
     {
-        horizontal = Input.GetAxis("Horizontal");
-        vertical = Input.GetAxis("Vertical");
+        horizontal = mobileController.Horizontal();
+        vertical = mobileController.Vertical();
 
         Vector3 dir = new Vector3(horizontal, 0.0f, vertical).normalized;
 
@@ -54,23 +59,16 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Attack()
+    public void Attack()
     {
-        if (cdAttack <= 0)
+        if (playerState.cdAttack >= playerState.enableAttack)
         {
-            if (Input.GetMouseButton(0))
-            {
-                gameObject.GetComponent<AudioController>().AttackClip();
-                Invoke("ActiveAttack", 0.5f);
-                animator.SetTrigger("Attack");
-                animator.SetBool("Damage", false);
-                Invoke("DeActiveAttack", 1f);
-                cdAttack = 2f;
-            }
-        }
-        else if (cdAttack > 0)
-        {
-            cdAttack -= Time.deltaTime;
+            gameObject.GetComponent<AudioController>().AttackClip();
+            Invoke("ActiveAttack", 0.5f);
+            animator.SetTrigger("Attack");
+            animator.SetBool("Damage", false);
+            Invoke("DeActiveAttack", 1f);
+            playerState.cdAttack = 0f;
         }
     }
 
@@ -103,7 +101,7 @@ public class PlayerController : MonoBehaviour
         {
             gameObject.GetComponent<AudioController>().DamageClip();
             playerState.hp -= 1f;
-            cdAttack = 1f;
+            playerState.cdAttack = 1f;
             animator.SetBool("Damage", true);
             animator.SetBool("Move", false);
             animator.SetBool("Idle", false);
@@ -111,9 +109,12 @@ public class PlayerController : MonoBehaviour
 
         if (other.tag == "HpSphere")
         {
-            hpUp.Play();
-            playerState.hp += 1f;
-            Destroy(other.gameObject);
+            if (playerState.hp < playerState.maxHp)
+            {
+                hpUp.Play();
+                playerState.hp += 1f;
+                Destroy(other.gameObject);
+            }
         }
     }
 }
